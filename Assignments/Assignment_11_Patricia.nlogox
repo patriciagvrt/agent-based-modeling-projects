@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <model version="NetLogo 7.0.3" snapToGrid="false">
   <code><![CDATA[; Assignment 1 - extended Simple Economy model
-; 
+; Patricia Givort Cruz Cabral LIU ID patgi434@student.liu.se
 
+globals [ redistributions ]
 turtles-own [ money ]
 
 to setup
@@ -10,48 +11,58 @@ to setup
   create-turtles 100 [
     set money 100
   ]
+  set redistributions 0
   reset-ticks
 end
 
 to go
-  if ticks >= 10000 [ stop ]
+  if ticks = 10000 [ stop ]
 
-  ask turtles with [ money > 0 ] [
-    give-money
+  if model-type = "original" [
+    ask turtles with [ money > 0 ] [
+      give-money-original
+    ]
+  ]
+
+  if model-type = "redistribution" [
+    ask turtles with [ money > 0 ] [
+      give-money-extended
+    ]
   ]
 
   tick
 end
 
-to give-money
+to give-money-original
+  ask one-of other turtles [
+    set money money + 1
+  ]
+  set money money - 1
+end
+
+to give-money-extended
   let receiver one-of other turtles
   if receiver != nobody [
     ask receiver [
       set money money + 1
-      if model-type = "redistribution" [
-        maybe-redistribute
+      if money > 150 [
+        let vulnerable-agents other turtles with [ money <= 50 ]
+        if any? vulnerable-agents [
+          let vulnerable one-of vulnerable-agents
+          set money money - 1
+          ask vulnerable [
+            set money money + 1
+          ]
+          set redistributions redistributions + 1
+        ]
       ]
     ]
     set money money - 1
   ]
-end
-
-to maybe-redistribute
-  if money > 150 [
-    let vulnerable-agents other turtles with [ money <= 50 ]
-    if any? vulnerable-agents [
-      let vulnerable one-of vulnerable-agents
-      set money money - 1
-      ask vulnerable [
-        set money money + 1
-      ]
-    ]
-  ]
-end
-]]></code>
+end]]></code>
   <widgets>
     <view x="862" wrappingAllowedX="true" y="68" frameRate="30.0" minPycor="-16" height="362" showTickCounter="true" patchSize="10.85" fontSize="10" wrappingAllowedY="true" width="362" tickCounterLabel="ticks" maxPycor="16" updateMode="0" maxPxcor="16" minPxcor="-16"></view>
-    <chooser x="430" y="90" height="60" variable="model-type" current="1" width="170" display="model-type">
+    <chooser x="430" y="90" height="60" variable="model-type" current="0" width="170" display="model-type">
       <choice type="string" value="original"></choice>
       <choice type="string" value="redistribution"></choice>
     </chooser>
