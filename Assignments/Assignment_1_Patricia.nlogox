@@ -1,54 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <model version="NetLogo 7.0.3" snapToGrid="false">
   <code><![CDATA[; Assignment 1 - extended Simple Economy model
-; 
+; Patricia Givort Cruz Cabral LIU ID patgi434@student.liu.se
 
+globals [ redistributions ]
 turtles-own [ money ]
 
+;first setup
 to setup
   ca
   create-turtles 100 [
     set money 100
   ]
+  set redistributions 0
   reset-ticks
 end
-
+; put the limit of 1000 ticks
 to go
-  if ticks >= 10000 [ stop ]
-
-  ask turtles with [ money > 0 ] [
-    give-money
+  if ticks = 10000 [ stop ]
+; original model code
+  if model-type = "original" [
+    ask turtles with [ money > 0 ] [
+      give-money-original
+    ]
+  ]
+; new model code
+  if model-type = "redistribution" [
+    ask turtles with [ money > 0 ] [
+      give-money-extended
+    ]
   ]
 
   tick
 end
-
-to give-money
+; give of the original
+to give-money-original
+  ask one-of other turtles [
+    set money money + 1
+  ]
+  set money money - 1
+end
+; the new model given with 50 euros or less rule;
+to give-money-extended
   let receiver one-of other turtles
   if receiver != nobody [
     ask receiver [
       set money money + 1
-      if model-type = "redistribution" [
-        maybe-redistribute
+      if money > 150 [
+        let vulnerable-agents other turtles with [ money <= 50 ]
+        if any? vulnerable-agents [
+          let vulnerable one-of vulnerable-agents
+          set money money - 1
+          ask vulnerable [
+            set money money + 1
+          ]
+          set redistributions redistributions + 1
+        ]
       ]
     ]
     set money money - 1
   ]
-end
-
-to maybe-redistribute
-  if money > 150 [
-    let vulnerable-agents other turtles with [ money <= 50 ]
-    if any? vulnerable-agents [
-      let vulnerable one-of vulnerable-agents
-      set money money - 1
-      ask vulnerable [
-        set money money + 1
-      ]
-    ]
-  ]
-end
-]]></code>
+end]]></code>
   <widgets>
     <view x="862" wrappingAllowedX="true" y="68" frameRate="30.0" minPycor="-16" height="362" showTickCounter="true" patchSize="10.85" fontSize="10" wrappingAllowedY="true" width="362" tickCounterLabel="ticks" maxPycor="16" updateMode="0" maxPxcor="16" minPxcor="-16"></view>
     <chooser x="430" y="90" height="60" variable="model-type" current="1" width="170" display="model-type">
@@ -68,40 +80,43 @@ end
     <button x="428" y="34" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="63">setup</button>
   </widgets>
   <info>## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
+This model is a simple economy model that shows how money can become unevenly distributed over time, even when all agents start with the same amount of money, it includes an extended version with a redistribution rule. The goal is to compare the original version of the model with a version in which accommodated agents, agents with more than 150 euros, can pass the received euro to vulnerable agents, agents with 50 euros or less. The extension helps show how a small change in the transfer rule can affect the finish distribution of money in the system.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+The model starts with 100 turtles and each turtle begins with 100 euros. In the original version, every turtle with more than 0 euros gives 1 euro to another randomly selected turtle at each tick. In the redistribution version, the same rule is applied but if a turtle with more than 150 euros receives money and there are vulnerable turtles in the system, with 50 euros or less, that received euro is transferred to one vulnerable turtle instead. The model runs for 10,000 ticks and the distribution of money changes over time
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+First, choose a model type in the chooser:
+original runs the basic Simple Economy model
+redistribution runs the extended version with the redistribution rule
+Then click setup to create the turtles and initialize the model. After that, click go to run the simulation. The plot shows the distribution of money among turtles and the monitors show the number of vulnerable agents, accommodated agents, the number of redistributions, and the minimum and maximum amount of money in the system.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+Notice how inequality appears even though all turtles start with exactly the same amount of money. Also  the redistribution version seems to keep more turtles in the middle range of the distribution, it is also useful to compare the number of vulnerable agents and the maximum amount of money across the two versions.
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Try running the model several times in both modes and compare the histograms. Because the model is random, the exact distribution will not be identical every time. You can also pay attention to whether the redistribution rule reduces the number of vulnerable turtles or lowers the highest observed values of money.
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+It would be interesting to add taxes, savings behavior, or social networks so that money transfers are not completely random.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+This model uses turtles-own variables to store money for each turtle. 
+It uses a chooser to switch between the original and extended versions of the model. Random interactions are implemented with one-of other turtles, and the histogram is used to visualize how the money distribution changes over time.
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+This model is based on the Simple Economy model used in Lab2_2. It is related to models about inequality, distribution dynamics, and redistribution mechanisms in agent-based simulations.
 
-## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)</info>
+
+</info>
   <turtleShapes>
     <shape name="default" rotatable="true" editableColorIndex="0">
       <polygon color="-1920102913" filled="true" marked="true">
