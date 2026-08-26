@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <model version="NetLogo 7.0.3" snapToGrid="false">
-  <code><![CDATA[; Assignment 2 - extended model
+  <code><![CDATA[; Assignment 2 - extended model Simple Contagion Modified
 ; Patricia Givort Cruz Cabral LIU ID patgi434@student.liu.se
 
 
@@ -11,7 +11,7 @@ globals [n_red_turtles]
 
 turtles-own [threshold blacklist]
 
-; how does different network structures may affect diffusion processes?
+; how does different network structures may affect diffusion processes - quesiton
 
 ; network_type: "SW" / "SF" / "RN"
 ; diffusion_type: "simple" /"complex" / "simple_modified"
@@ -198,15 +198,11 @@ to update_output
   set n_red_turtles total
 end]]></code>
   <widgets>
-    <view x="11" wrappingAllowedX="false" y="11" frameRate="30.0" minPycor="0" height="259" showTickCounter="true" patchSize="7.1" fontSize="10" wrappingAllowedY="false" width="259" tickCounterLabel="ticks" maxPycor="35" updateMode="0" maxPxcor="35" minPxcor="0"></view>
-    <button x="292" y="78" height="49" disableUntilTicks="false" forever="true" kind="Observer" width="96">go</button>
-    <button x="291" y="14" height="56" disableUntilTicks="false" forever="false" kind="Observer" width="97">setup</button>
-    <chooser x="33" y="347" height="60" variable="network_type" current="0" width="138" display="network_type">
-      <choice type="string" value="SW"></choice>
-      <choice type="string" value="SF"></choice>
-      <choice type="string" value="RN"></choice>
-    </chooser>
-    <plot x="277" autoPlotX="true" yMax="100.0" autoPlotY="true" y="287" xMin="0.0" height="175" legend="false" xMax="10.0" yMin="0.0" width="230" xAxis="Time" display="Diffusion">
+    <view x="891" wrappingAllowedX="false" y="32" frameRate="30.0" minPycor="0" height="452" showTickCounter="true" patchSize="12.44444444444445" fontSize="10" wrappingAllowedY="false" width="452" tickCounterLabel="ticks" maxPycor="35" updateMode="0" maxPxcor="35" minPxcor="0"></view>
+    <button x="766" y="32" height="56" disableUntilTicks="false" forever="false" kind="Observer" width="97">setup</button>
+    <button x="765" y="101" height="49" disableUntilTicks="false" forever="true" kind="Observer" width="96">go</button>
+    <button x="667" y="101" height="50" disableUntilTicks="false" forever="false" kind="Observer" width="81">go</button>
+    <plot x="1372" autoPlotX="true" yMax="100.0" autoPlotY="true" y="232" xMin="0.0" height="251" legend="false" xMax="10.0" yMin="0.0" width="278" xAxis="Time" display="Diffusion">
       <setup></setup>
       <update></update>
       <pen interval="1.0" mode="0" display="default" color="-16777216" legend="true">
@@ -215,50 +211,52 @@ end]]></code>
 plot PercDiffusion</update>
       </pen>
     </plot>
-    <chooser x="30" y="413" height="60" variable="diffusion_type" current="2" width="180" display="diffusion_type">
+    <slider x="662" step="10" y="183" max="1200" width="172" display="population" height="50" min="20" direction="Horizontal" default="20.0" variable="population"></slider>
+    <chooser x="663" y="247" height="60" variable="network_type" current="0" width="138" display="network_type">
+      <choice type="string" value="SW"></choice>
+      <choice type="string" value="SF"></choice>
+      <choice type="string" value="RN"></choice>
+    </chooser>
+    <chooser x="662" y="316" height="60" variable="diffusion_type" current="1" width="180" display="diffusion_type">
       <choice type="string" value="simple"></choice>
       <choice type="string" value="complex"></choice>
       <choice type="string" value="simple_modified"></choice>
     </chooser>
-    <slider x="31" step="0.05" y="483" max="1" width="172" display="P" height="50" min="0" direction="Horizontal" default="0.5" variable="P"></slider>
-    <monitor x="143" precision="17" y="480" height="60" fontSize="11" width="100">count links</monitor>
-    <monitor x="37" precision="17" y="480" height="60" fontSize="11" width="100">count turtles</monitor>
-    <button x="292" y="141" height="50" disableUntilTicks="false" forever="false" kind="Observer" width="81">go</button>
-    <slider x="31" step="10" y="287" max="1200" width="172" display="population" height="50" min="20" direction="Horizontal" default="20.0" variable="population"></slider>
+    <monitor x="614" precision="17" y="403" height="60" fontSize="11" width="100">count turtles</monitor>
+    <monitor x="730" precision="17" y="407" height="60" fontSize="11" width="100">count links</monitor>
+    <slider x="612" step="0.05" y="479" max="1" width="172" display="P" height="50" min="0" direction="Horizontal" default="0.5" variable="P"></slider>
   </widgets>
   <info>## WHAT IS IT?
 
-This model extends Lab4_3 by adding a third diffusion type: Simple Contagion Modified.
+This model extends Lab4_3 by adding a third diffusion type Simple Contagion Modified.
 
 ## HOW IT WORKS
 
-**Simple Contagion Modified:**
-1. A red sender contacts one random green network neighbor.
-2. The receiver checks if the sender is on her blacklist.
-   - Blacklisted: request is silently ignored.
-   - Not blacklisted: accepted with probability P.
-     - Accepted: receiver turns red.
-     - Rejected: sender is added to receiver's blacklist, and one random non-infected bystander also blacklists the sender.
-3. All blacklists start empty at setup.
-
-Print statements trace every interaction in the Command Center.
+Simple Contagion Modified:
+A red sender contacts one random green network neighbor.
+Then the receiver checks if the sender is on her blacklist.
+    Blacklisted: request is silently ignored.
+    Not blacklisted: accepted with probability P.
+         Accepted: receiver turns red.
+         Rejected: sender is added to receiver's blacklist, and one random non-infected bystander also blacklists the sender.
+All blacklists start empty at setup. And print statements trace every interaction in the Command Center.
 
 ## HOW TO USE IT
 
-1. Choose network_type (SW, SF, RN).
-2. Choose diffusion_type = simple_modified.
-3. Set P with the slider (0 = always reject, 1 = always accept).
-4. Press Setup, then Go.
+1 Choose network_type (SW, SF, RN).
+2 Choose diffusion_type = simple_modified.
+3 Set P with the slider (0 = always reject, 1 = always accept)
+4 Press Setup, then Go.
 
 ## THINGS TO NOTICE
 
 - Low P: blacklists grow fast, diffusion slows dramatically.
-- High P: behavior resembles simple contagion.
+- High P means behavior remindes of simple contagion.
 - Bystanders can blacklist senders they have never directly interacted with.
 
 ## NETLOGO FEATURES
 
-Uses the nw extension. Blacklists are list-valued turtle variables updated with lput and queried with member?.</info>
+Uses the nw extension. Blacklists are list-valued turtle variables updated with lput and queried with member</info>
   <turtleShapes>
     <shape name="default" rotatable="true" editableColorIndex="0">
       <polygon color="-1920102913" filled="true" marked="true">
