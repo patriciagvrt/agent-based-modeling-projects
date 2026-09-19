@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <model version="NetLogo 7.0.3" snapToGrid="false">
   <code><![CDATA[; Assignment 1 - extended Simple Economy model
-; Patricia Givort Cruz Cabral LIU ID patgi434@student.liu.se
+; Patricia Givort Cruz Cabral
 
 globals [ redistributions ]
 turtles-own [ money ]
