@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<model version="NetLogo 7.0.3" snapToGrid="false">
+  <code><![CDATA[;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Assignment 3: Forest Fire ABM
+; Name: [Liying Wang][Xiaoyu Zhan][Patricia Givort Cruz Cabral][Jun Shen]
+; LIU-ID: [liywa691][xiazh253][patgi434][junsh159]
+; Date: 09/04 April 2026
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+globals [
+  initial-trees
+  perc-burned
+]
+
+breed [smokers smoker]
+breed [firefighters firefighter]
+
+smokers-own [ carelessness ]
+firefighters-own [ speed scan-radius ]
+
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Environment & World Logic
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+to setup-environment
+  clear-all
+  ask patches [ set pcolor green ]
+  set initial-trees count patches
+  reset-ticks
+end
+
+to update-stats
+  set perc-burned (count patches with [pcolor = red] / initial-trees) * 100
+end
+
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Fire-spread Logic
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+to spread-fire-logic
+  ask patches with [pcolor = red] [
+    let potential-targets neighbors with [pcolor = green]
+    if any? potential-targets [
+      ask one-of potential-targets [ set pcolor red ]
+    ]
+  ]
+end
+
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Smoker behavior Logic
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+to setup-smokers
+  create-smokers num-smokers [
+    setxy random-xcor random-ycor
+    set shape "person"
+    set color black
+    set size 1.5
+    set carelessness ignition-probability
+    print (word "Smoker created at (" (precision xcor 1) ", " (precision ycor 1) ") carelessness=" (precision carelessness 2))
+  ]
+end
+
+to smoker-walk
+  ask smokers [
+    rt random 60
+    lt random 60
+    fd 1
+    if pcolor = green [
+      if random-float 1 < carelessness [
+        set pcolor red
+        print (word "Smoker at (" (precision xcor 1) ", " (precision ycor 1) ") dropped cigarette! Patch ignited.")
+      ]
+    ]
+  ]
+end
+
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Firefighter Logic
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+to setup-firefighters
+  create-firefighters num-firefighters [
+    setxy random-xcor random-ycor
+    set shape "car"
+    set color blue
+    set size 1.8
+    set speed 3
+    set scan-radius 4
+    print (word "Firefighter created at (" (precision xcor 1) ", " (precision ycor 1) ") scan-radius=" scan-radius)
+  ]
+end
+
+to firefighter-go
+  ask firefighters [
+    let fire-patches patches in-radius scan-radius with [pcolor = red]
+    ifelse any? fire-patches [
+      let target min-one-of fire-patches [distance myself]
+      face target
+      fd min (list speed (distance target))
+
+      ; Extinguish fire on current patch
+      if pcolor = red [
+        set pcolor green
+        print (word "Firefighter at (" (precision xcor 1) ", " (precision ycor 1) ") extinguished fire!")
+      ]
+
+      ; Also extinguish all red patches within reach
+      ask patches in-radius 3 with [pcolor = red] [
+        set pcolor green
+        print (word "  -> Nearby patch at (" pxcor ", " pycor ") also extinguished")
+      ]
+
+    ] [
+      ; No fire in scan radius — move toward any fire on the whole map
+      let any-fire patches with [pcolor = red]
+      ifelse any? any-fire [
+        face min-one-of any-fire [distance myself]
+        fd speed
+      ] [
+        rt random 45
+        lt random 45
+        fd 1
+      ]
+    ]
+  ]
+end
+
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+; Main Setup & Go
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+to setup
+  setup-environment
+  setup-smokers
+  setup-firefighters
+  print "=== Simulation setup complete ==="
+  print (word "  Trees: " initial-trees)
+  print (word "  Smokers: " num-smokers)
+  print (word "  Firefighters: " num-firefighters)
+  print (word "  Ignition probability: " ignition-probability)
+end
+
+to go
+  smoker-walk
+  spread-fire-logic
+  firefighter-go
+  update-stats
+
+  if not any? patches with [pcolor = green] [
+    print "=== FOREST FULLY BURNED - simulation stopped ==="
+    stop
+  ]
+
+  tick
+end
+]]></code>
+  <widgets>
+    <view x="224" wrappingAllowedX="true" y="11" frameRate="30.0" minPycor="-16" height="364" showTickCounter="true" patchSize="10.91" fontSize="10" wrappingAllowedY="true" width="364" tickCounterLabel="ticks" maxPycor="16" updateMode="0" maxPxcor="16" minPxcor="-16"></view>
+    <slider x="10" step="1" y="10" max="20" display="num-smokers" height="33" min="1" direction="Horizontal" default="1.0" variable="num-smokers" width="195" sizeVersion="0"></slider>
+    <slider x="10" step="1" y="55" max="20" display="num-firefighters" height="33" min="1" direction="Horizontal" default="3.0" variable="num-firefighters" width="195" sizeVersion="0"></slider>
+    <slider x="10" step="0.01" y="100" max="1.0" display="ignition-probability" height="33" min="0.0" direction="Horizontal" default="0.5" variable="ignition-probability" width="195" sizeVersion="0"></slider>
+    <button x="10" y="150" height="33" disableUntilTicks="false" forever="false" kind="Observer" display="Setup" width="90" sizeVersion="0">setup</button>
+    <button x="110" y="150" height="33" disableUntilTicks="true" forever="true" kind="Observer" display="Go" width="90" sizeVersion="0">go</button>
+    <monitor x="10" precision="1" y="195" height="45" fontSize="11" display="% Burned" width="120" sizeVersion="0">perc-burned</monitor>
+    <monitor x="140" precision="17" y="195" height="45" fontSize="11" display="Ticks" width="70" sizeVersion="0">ticks</monitor>
+  </widgets>
+  <info>## WHAT IS IT?
+
+A Forest Fire Agent-Based Model. Smokers randomly ignite patches; Firefighters chase and extinguish fire. Find the tipping point where the forest can no longer survive.
+
+## HOW IT WORKS
+
+- Green patches = healthy forest, Red patches = fire
+- Smokers walk randomly and ignite green patches with probability = ignition-probability
+- Fire spreads to one random green neighbour per tick
+- Firefighters scan their radius, move toward nearest fire, extinguish it
+
+## HOW TO USE IT
+
+1. Set the three sliders
+2. Press Setup
+3. Press Go and watch the Output panel for print statements</info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"></point>
+        <point x="40" y="250"></point>
+        <point x="150" y="205"></point>
+        <point x="260" y="250"></point>
+      </polygon>
+    </shape>
+    <shape name="car" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="300" y="180"></point>
+        <point x="279" y="164"></point>
+        <point x="261" y="144"></point>
+        <point x="240" y="135"></point>
+        <point x="226" y="132"></point>
+        <point x="213" y="106"></point>
+        <point x="203" y="84"></point>
+        <point x="185" y="63"></point>
+        <point x="159" y="50"></point>
+        <point x="135" y="50"></point>
+        <point x="75" y="60"></point>
+        <point x="0" y="150"></point>
+        <point x="0" y="165"></point>
+        <point x="0" y="225"></point>
+        <point x="300" y="225"></point>
+        <point x="300" y="180"></point>
+      </polygon>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"></circle>
+      <circle x="30" y="180" marked="false" color="255" diameter="90" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="80"></point>
+        <point x="132" y="78"></point>
+        <point x="134" y="135"></point>
+        <point x="209" y="135"></point>
+        <point x="194" y="105"></point>
+        <point x="189" y="96"></point>
+        <point x="180" y="89"></point>
+      </polygon>
+      <circle x="47" y="195" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="120" y="195"></point>
+        <point x="90" y="285"></point>
+        <point x="105" y="300"></point>
+        <point x="135" y="300"></point>
+        <point x="150" y="225"></point>
+        <point x="165" y="300"></point>
+        <point x="195" y="300"></point>
+        <point x="210" y="285"></point>
+        <point x="180" y="195"></point>
+        <point x="195" y="90"></point>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"></point>
+        <point x="240" y="150"></point>
+        <point x="225" y="180"></point>
+        <point x="165" y="105"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="60" y="150"></point>
+        <point x="75" y="180"></point>
+        <point x="135" y="105"></point>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0.0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+        <line x="0.0" visible="true">
+          <dash value="1.0"></dash>
+          <dash value="0.0"></dash>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+  <previewCommands>setup repeat 75 [ go ]</previewCommands>
+</model>
